@@ -1,1 +1,301 @@
-/* You can add global styles to this file, and also import other style files */
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI Variable Display', 'Segoe UI', system-ui, sans-serif;
+    --font-mono: 'SF Mono', 'Cascadia Code', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+
+  html,
+  body {
+    font-family: var(--font-sans);
+    min-height: 100%;
+    background-color: #050814;
+  }
+}
+
+/* ============================================================================
+   LIQUID GLASS OPTICAL SYSTEM
+   ============================================================================ */
+
+.lg-surface {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: var(--lg-radius, 28px);
+  box-shadow:
+    0 24px 60px -15px rgba(0, 0, 0, var(--lg-shadow-alpha, 0.42)),
+    0 4px 16px -2px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 0 rgba(255, 255, 255, calc(var(--lg-specular, 0.7) * 0.65)),
+    inset 0 -1px 0 0 rgba(255, 255, 255, calc(var(--lg-specular, 0.7) * 0.16)),
+    inset 1px 0 0 0 rgba(255, 255, 255, calc(var(--lg-specular, 0.7) * 0.22)),
+    inset -1px 0 0 0 rgba(255, 255, 255, calc(var(--lg-specular, 0.7) * 0.12));
+  transition:
+    transform 420ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 350ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-radius 250ms ease;
+}
+
+.lg-surface--interactive:hover {
+  transform: translateY(-2px);
+}
+
+.lg-surface--interactive:active {
+  transform: scale(0.985);
+}
+
+/* Base frosted optical glass backdrop (universal cross-browser support) */
+.lg-backdrop-base {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  backdrop-filter: blur(var(--lg-blur, 14px)) saturate(var(--lg-sat, 185%))
+    brightness(var(--lg-brightness, 1.06));
+  -webkit-backdrop-filter: blur(var(--lg-blur, 14px)) saturate(var(--lg-sat, 185%))
+    brightness(var(--lg-brightness, 1.06));
+  pointer-events: none;
+}
+
+/* Real SVG Optical Displacement Refraction layer (Chromium enhanced) */
+.lg-backdrop-refract {
+  position: absolute;
+  inset: -1px;
+  z-index: 1;
+  border-radius: inherit;
+  backdrop-filter: url(#lg-surface-filter);
+  -webkit-backdrop-filter: url(#lg-surface-filter);
+  pointer-events: none;
+}
+
+/* Tinted crystal body + inner depth gradient */
+.lg-tint-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  background:
+    linear-gradient(
+      var(--lg-light-angle, 135deg),
+      rgba(255, 255, 255, calc(var(--lg-specular, 0.7) * 0.26)) 0%,
+      rgba(255, 255, 255, 0.03) 38%,
+      rgba(255, 255, 255, 0) 62%,
+      rgba(255, 255, 255, calc(var(--lg-specular, 0.7) * 0.12)) 100%
+    ),
+    var(--lg-tint, rgba(255, 255, 255, 0.12));
+  pointer-events: none;
+}
+
+/* Fresnel curved rim border (masked directional specular gradient) */
+.lg-fresnel-rim {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  border-radius: inherit;
+  padding: 1.25px;
+  background: linear-gradient(
+    var(--lg-light-angle, 135deg),
+    rgba(255, 255, 255, calc(var(--lg-specular, 0.7) * 0.92)) 0%,
+    rgba(255, 255, 255, calc(var(--lg-specular, 0.7) * 0.28)) 26%,
+    rgba(255, 255, 255, 0.05) 50%,
+    rgba(255, 255, 255, calc(var(--lg-specular, 0.7) * 0.18)) 74%,
+    rgba(255, 255, 255, calc(var(--lg-specular, 0.7) * 0.65)) 100%
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Chromatic edge shimmer (subtle prismatic iridescence along bevel) */
+.lg-chromatic-rim {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  border-radius: inherit;
+  padding: 1.5px;
+  opacity: var(--lg-chromatic, 0.45);
+  background: conic-gradient(
+    from var(--lg-light-angle, 135deg),
+    rgba(56, 189, 248, 0.55),
+    rgba(168, 85, 247, 0.35),
+    rgba(244, 114, 182, 0.45),
+    rgba(250, 204, 21, 0.35),
+    rgba(52, 211, 153, 0.45),
+    rgba(56, 189, 248, 0.55)
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+/* Pointer-tracked caustic specular highlight */
+.lg-specular-glint {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  border-radius: inherit;
+  opacity: var(--lg-glint-opacity, 0);
+  background: radial-gradient(
+    320px circle at var(--lg-mx, 50%) var(--lg-my, 50%),
+    rgba(255, 255, 255, calc(var(--lg-specular, 0.7) * 0.34)) 0%,
+    rgba(255, 255, 255, calc(var(--lg-specular, 0.7) * 0.08)) 38%,
+    transparent 70%
+  );
+  transition: opacity 300ms ease;
+  pointer-events: none;
+}
+
+/* Inner glass top sheen arc */
+.lg-top-sheen {
+  position: absolute;
+  top: 0;
+  left: 8%;
+  right: 8%;
+  height: 1px;
+  z-index: 6;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, calc(var(--lg-specular, 0.7) * 0.95)) 50%,
+    transparent
+  );
+  filter: blur(0.4px);
+  pointer-events: none;
+}
+
+.lg-content {
+  position: relative;
+  z-index: 10;
+}
+
+/* ============================================================================
+   CUSTOM LIQUID RANGE SLIDERS
+   ============================================================================ */
+
+input[type='range'].lg-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.35);
+  outline: none;
+  cursor: pointer;
+}
+
+.lg-light-theme input[type='range'].lg-slider {
+  background: rgba(15, 23, 42, 0.14);
+  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.18);
+}
+
+input[type='range'].lg-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 32% 30%, #ffffff 0%, rgba(255, 255, 255, 0.85) 58%, rgba(226, 232, 240, 0.92) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.35),
+    inset 0 1px 1px rgba(255, 255, 255, 1);
+  transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+input[type='range'].lg-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.16);
+}
+
+input[type='range'].lg-slider::-webkit-slider-thumb:active {
+  transform: scale(1.24, 0.92);
+}
+
+/* ============================================================================
+   LIVING SCENE ANIMATIONS
+   ============================================================================ */
+
+@keyframes lgFloatSlow {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  33% {
+    transform: translate3d(3%, -4%, 0) scale(1.06);
+  }
+  66% {
+    transform: translate3d(-2.5%, 3%, 0) scale(0.96);
+  }
+}
+
+@keyframes lgFloatReverse {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate3d(-4%, 4%, 0) rotate(8deg);
+  }
+}
+
+@keyframes lgEqBar {
+  0%,
+  100% {
+    transform: scaleY(0.28);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes lgDriftRibbon {
+  0% {
+    transform: translateX(-8%) rotate(-12deg);
+  }
+  50% {
+    transform: translateX(8%) rotate(-9deg);
+  }
+  100% {
+    transform: translateX(-8%) rotate(-12deg);
+  }
+}
+
+.animate-lg-float {
+  animation: lgFloatSlow 18s ease-in-out infinite;
+}
+
+.animate-lg-float-reverse {
+  animation: lgFloatReverse 22s ease-in-out infinite;
+}
+
+.animate-lg-ribbon {
+  animation: lgDriftRibbon 24s ease-in-out infinite;
+}
+
+.animate-lg-eq {
+  transform-origin: bottom;
+  animation: lgEqBar var(--eq-speed, 0.9s) ease-in-out infinite;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
